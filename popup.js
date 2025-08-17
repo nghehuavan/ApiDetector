@@ -230,6 +230,10 @@ async function initPopup() {
       loadLogs(); // Reload logs with the new search term
     });
 
+    questionInput.addEventListener('input', () => {
+      chrome.storage.local.set({ savedQuestion: questionInput.value });
+    });
+
     askButton.addEventListener('click', askGemini);
     refreshButton.addEventListener('click', loadLogs);
     clearAllButton.addEventListener('click', () => {
@@ -243,6 +247,13 @@ async function initPopup() {
 
     // Load API key (the settings view can be accessed manually if needed)
     loadApiKey();
+
+    // Load saved question from local storage
+    chrome.storage.local.get('savedQuestion', (result) => {
+      if (result.savedQuestion) {
+        questionInput.value = result.savedQuestion;
+      }
+    });
   } catch (error) {
     logsCountElement.textContent = `Error: ${error.message}`;
     console.error('Popup initialization error:', error);
