@@ -347,8 +347,13 @@ const mainView = document.getElementById('mainView');
 const settingsView = document.getElementById('settingsView');
 const settingsButton = document.getElementById('settingsButton');
 const backButton = document.getElementById('backButton');
+const apiProviderSelect = document.getElementById('apiProviderSelect');
+const geminiSettings = document.getElementById('geminiSettings');
+const openrouterSettings = document.getElementById('openrouterSettings');
 const apiKeyInput = document.getElementById('apiKeyInput');
-const toggleVisibilityButton = document.getElementById('toggleVisibility');
+const openrouterApiKeyInput = document.getElementById('openrouterApiKeyInput');
+const toggleGeminiVisibility = document.getElementById('toggleGeminiVisibility');
+const toggleOpenRouterVisibility = document.getElementById('toggleOpenRouterVisibility');
 const saveButton = document.getElementById('saveButton');
 const clearSettingsButton = document.getElementById('clearSettingsButton');
 const statusMessage = document.getElementById('statusMessage');
@@ -368,54 +373,93 @@ backButton.addEventListener('click', function () {
   mainView.classList.remove('hidden');
 });
 
-// Load the saved API key
+// Handle API provider selection change
+apiProviderSelect.addEventListener('change', function () {
+  if (this.value === 'gemini') {
+    geminiSettings.classList.remove('hidden');
+    openrouterSettings.classList.add('hidden');
+  } else {
+    geminiSettings.classList.add('hidden');
+    openrouterSettings.classList.remove('hidden');
+  }
+});
+
+// Load the saved API key and provider
 function loadApiKey() {
-  chrome.storage.sync.get(['geminiApiKey'], (result) => {
+  chrome.storage.sync.get(['apiProvider', 'geminiApiKey', 'openrouterApiKey'], (result) => {
+    const apiProvider = result.apiProvider || 'gemini';
+    apiProviderSelect.value = apiProvider;
+
+    if (apiProvider === 'gemini') {
+      geminiSettings.classList.remove('hidden');
+      openrouterSettings.classList.add('hidden');
+    } else {
+      geminiSettings.classList.add('hidden');
+      openrouterSettings.classList.remove('hidden');
+    }
+
     if (result.geminiApiKey) {
       apiKeyInput.value = result.geminiApiKey;
-      // No status message here, as it might be called on initial load
     } else {
-      apiKeyInput.value = ''; // Ensure input is empty if no key
+      apiKeyInput.value = '';
+    }
+
+    if (result.openrouterApiKey) {
+      openrouterApiKeyInput.value = result.openrouterApiKey;
+    } else {
+      openrouterApiKeyInput.value = '';
     }
   });
 }
 
-// Save the API key
+// Save the API key and provider
 function saveApiKey() {
-  const apiKey = apiKeyInput.value.trim();
+  const apiProvider = apiProviderSelect.value;
+  const geminiApiKey = apiKeyInput.value.trim();
+  const openrouterApiKey = openrouterApiKeyInput.value.trim();
 
-  if (!apiKey) {
-    showStatus('Please enter an API key', 'error');
+  if (apiProvider === 'gemini' && !geminiApiKey) {
+    showStatus('Please enter a Gemini API key', 'error');
     return;
   }
 
-  chrome.storage.sync.set({ geminiApiKey: apiKey }, () => {
-    showStatus('API key saved successfully!', 'success');
+  if (apiProvider === 'openrouter' && !openrouterApiKey) {
+    showStatus('Please enter an OpenRouter API key', 'error');
+    return;
+  }
+
+  chrome.storage.sync.set({
+    apiProvider: apiProvider,
+    geminiApiKey: geminiApiKey,
+    openrouterApiKey: openrouterApiKey
+  }, () => {
+    showStatus('Settings saved successfully!', 'success');
     // If successful, navigate back to main view
     settingsView.classList.add('hidden');
     mainView.classList.remove('hidden');
   });
 }
 
-// Clear the API key
+// Clear the API key and provider
 function clearApiKey() {
   apiKeyInput.value = '';
-  chrome.storage.sync.remove('geminiApiKey', () => {
-    showStatus('API key cleared', 'info');
+  openrouterApiKeyInput.value = '';
+  chrome.storage.sync.remove(['apiProvider', 'geminiApiKey', 'openrouterApiKey'], () => {
+    showStatus('Settings cleared', 'info');
   });
 }
 
 // Toggle API key visibility
-function toggleVisibility() {
-  const iconElement = toggleVisibilityButton.querySelector('i');
-  if (apiKeyInput.type === 'password') {
-    apiKeyInput.type = 'text';
+function toggleVisibility(inputElement, buttonElement) {
+  const iconElement = buttonElement.querySelector('i');
+  if (inputElement.type === 'password') {
+    inputElement.type = 'text';
     if (iconElement) {
       iconElement.classList.remove('fa-eye');
       iconElement.classList.add('fa-eye-slash');
     }
   } else {
-    apiKeyInput.type = 'password';
+    inputElement.type = 'password';
     if (iconElement) {
       iconElement.classList.remove('fa-eye-slash');
       iconElement.classList.add('fa-eye');
@@ -439,7 +483,8 @@ function showStatus(message, type) {
 function setupSettingsEventListeners() {
   saveButton.addEventListener('click', saveApiKey);
   clearSettingsButton.addEventListener('click', clearApiKey);
-  toggleVisibilityButton.addEventListener('click', toggleVisibility);
+  toggleGeminiVisibility.addEventListener('click', () => toggleVisibility(apiKeyInput, toggleGeminiVisibility));
+  toggleOpenRouterVisibility.addEventListener('click', () => toggleVisibility(openrouterApiKeyInput, toggleOpenRouterVisibility));
 }
 
 // Initialize settings functionality

@@ -87,26 +87,49 @@
 
       <div class="settings-container">
         <div class="setting-group">
+          <h2>API Provider</h2>
+          <p class="description">Select the API provider to use for AI analysis.</p>
+          <select id="apiProviderSelect">
+            <option value="gemini">Google Gemini</option>
+            <option value="openrouter">OpenRouter</option>
+          </select>
+        </div>
+
+        <div id="geminiSettings" class="setting-group">
           <h2>Google Gemini API Key</h2>
           <p class="description">
             Enter your Google Gemini API key to enable AI analysis of JSON responses.
             <a href="https://aistudio.google.com" target="_blank">Get an API key</a>
           </p>
-
           <div class="api-key-controls">
             <input type="password" id="apiKeyInput" placeholder="Enter your Gemini API key">
-            <button id="toggleVisibility" title="Toggle visibility" class="toggle-visibility-button">
+            <button id="toggleGeminiVisibility" title="Toggle visibility" class="toggle-visibility-button">
               <i class="fas fa-eye"></i>
             </button>
           </div>
-
-          <div class="button-group">
-            <button id="saveButton" class="primary-button">Save API Key</button>
-            <button id="clearSettingsButton" class="secondary-button">Clear API Key</button>
-          </div>
-
-          <div id="statusMessage" class="status-message"></div>
         </div>
+
+        <div id="openrouterSettings" class="setting-group hidden">
+          <h2>OpenRouter API Key</h2>
+          <p class="description">
+            Enter your OpenRouter API key to enable AI analysis of JSON responses.
+            <a href="https://openrouter.ai/keys" target="_blank">Get an API key</a>
+          </p>
+          <div class="api-key-controls">
+            <input type="password" id="openrouterApiKeyInput" placeholder="Enter your OpenRouter API key">
+            <button id="toggleOpenRouterVisibility" title="Toggle visibility" class="toggle-visibility-button">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button id="saveButton" class="primary-button">Save Settings</button>
+          <button id="clearSettingsButton" class="secondary-button">Clear Settings</button>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+      </div>
 
         <div class="setting-group">
           <h2>About</h2>

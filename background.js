@@ -112,9 +112,8 @@ async function clearAllRequests() {
 
 // Function to call the Google Gemini API
 async function callGeminiAPI(apiKey, logs, question) {
-  const API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-  // Format logs for the prompt
   const formattedLogs = logs.map((log) => ({
     url: log.url,
     method: log.method,
@@ -129,7 +128,7 @@ ${JSON.stringify(formattedLogs, null, 2)}
 
 User's question: ${question}
 
-Based on the provided JSON responses, please answer the user's question. If the information is not available in the logs, state that.`;
+Based on the provided JSON responses, please answer the user's question. If the information is not available in the logs, state that.`
 
   try {
     const response = await fetch(API_ENDPOINT, {
@@ -153,12 +152,61 @@ Based on the provided JSON responses, please answer the user's question. If the 
     }
 
     const data = await response.json();
-    // Extract the text from the response
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No answer found.';
     return answer;
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     throw new Error(`Failed to communicate with Gemini API: ${error.message}`);
+  }
+}
+
+// Function to call the OpenRouter API
+async function callOpenRouterAPI(apiKey, logs, question) {
+  const API_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+
+  const formattedLogs = logs.map((log) => ({
+    url: log.url,
+    method: log.method,
+    responseBody: log.responseBody,
+    timestamp: new Date(log.timestamp).toISOString(),
+  }));
+
+  const prompt = `You are an AI assistant specialized in analyzing API responses.
+Here are the JSON responses captured from a webpage during a single session:
+
+${JSON.stringify(formattedLogs, null, 2)}
+
+User's question: ${question}
+
+Based on the provided JSON responses, please answer the user's question. If the information is not available in the logs, state that.`
+
+  try {
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-flash-1.5',
+        messages: [
+          { role: 'user', content: prompt }
+        ]
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenRouter API error response:', errorData);
+      throw new Error(`OpenRouter API error: ${errorData.error.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    const answer = data.choices?.[0]?.message?.content || 'No answer found.';
+    return answer;
+  } catch (error) {
+    console.error('Error calling OpenRouter API:', error);
+    throw new Error(`Failed to communicate with OpenRouter API: ${error.message}`);
   }
 }
 
@@ -274,29 +322,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Handle Gemini API requests from the popup
   if (message.type === 'ASK_GEMINI') {
     // Get the API key from storage
-    chrome.storage.sync.get(['geminiApiKey'], async (result) => {
+    chrome.storage.sync.get(['apiProvider', 'geminiApiKey', 'openrouterApiKey'], async (result) => {
       try {
-        if (!result.geminiApiKey) {
-          sendResponse({ error: 'API key not found. Please set it in the extension settings.' });
-          return;
+        const apiProvider = result.apiProvider || 'gemini';
+
+        if (apiProvider === 'gemini') {
+          if (!result.geminiApiKey) {
+            sendResponse({ error: 'API key not found. Please set it in the extension settings.' });
+            return;
+          }
+          if (!result.geminiApiKey.startsWith('AI') || result.geminiApiKey.length < 10) {
+            sendResponse({ error: 'Invalid API key format. Please check your API key in the settings.' });
+            return;
+          }
+          const logs = await getRequestsByPageLoadId(message.pageLoadId);
+          const answer = await callGeminiAPI(result.geminiApiKey, logs, message.question);
+          sendResponse({ answer });
+        } else if (apiProvider === 'openrouter') {
+          if (!result.openrouterApiKey) {
+            sendResponse({ error: 'OpenRouter API key not found. Please set it in the extension settings.' });
+            return;
+          }
+          const logs = await getRequestsByPageLoadId(message.pageLoadId);
+          const answer = await callOpenRouterAPI(result.openrouterApiKey, logs, message.question);
+          sendResponse({ answer });
         }
-
-        // Validate API key format (basic check)
-        if (!result.geminiApiKey.startsWith('AI') || result.geminiApiKey.length < 10) {
-          sendResponse({ error: 'Invalid API key format. Please check your API key in the settings.' });
-          return;
-        }
-
-        // Get the logs for the current page load
-        const logs = await getRequestsByPageLoadId(message.pageLoadId);
-
-        // Call the Gemini API
-        const answer = await callGeminiAPI(result.geminiApiKey, logs, message.question);
-
-        // Send the answer back to the popup
-        sendResponse({ answer });
       } catch (error) {
-        console.error('Error processing Gemini request:', error);
+        console.error('Error processing API request:', error);
         sendResponse({ error: error.message });
       }
     });
