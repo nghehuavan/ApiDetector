@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="container">
     <!-- Main View -->
@@ -14,25 +16,27 @@
       <header>
         <div class="item">
           <button id="settingsButton" class="action-button settings-button" title="Settings">
-              <i class="fas fa-cog"></i>
-            </button>
+            <i class="fas fa-cog"></i>
+          </button>
           <h1>Api Detector</h1>
 
-                      <div class="toggle-container">
+          <div class="toggle-container">
             <label class="switch">
               <input type="checkbox" id="siteToggle">
-                <span class="slider round"></span>
+              <span class="slider round"></span>
             </label>
             <span id="siteToggleLabel"></span>
           </div>
+        </div>
+        <div class="item">
+          <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search logs...">
+
           </div>
-        <div class="item">        <div class="search-container">
-          <input type="text" id="searchInput" placeholder="Search logs...">
-                    
-        </div>  </div>
+        </div>
 
       </header>
-      
+
       <div class="logs-container">
         <div class="logs-header">
           <h2>Detected JSON responses</h2>
@@ -50,7 +54,7 @@
         <div id="logsCount">Loading...</div>
         <div id="logsList"></div>
       </div>
-      
+
       <div class="gemini-container">
         <h2>Ask Gemini</h2>
         <div class="gemini-input">
@@ -67,17 +71,17 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Settings View -->
     <div id="settingsView" class="hidden">
       <header>
-        <h1>Gemini Interceptor Settings</h1>
+        <h1>Gemini Settings</h1>
         <button id="backButton" class="action-button back-button" title="Back to main view">
           <i class="fas fa-arrow-left"></i>
           <span>Back</span>
         </button>
       </header>
-      
+
       <div class="settings-container">
         <div class="setting-group">
           <h2>Google Gemini API Key</h2>
@@ -85,20 +89,20 @@
             Enter your Google Gemini API key to enable AI analysis of JSON responses.
             <a href="https://aistudio.google.com" target="_blank">Get an API key</a>
           </p>
-          
+
           <div class="api-key-input">
             <input type="password" id="apiKeyInput" placeholder="Enter your Gemini API key">
             <button id="toggleVisibility" title="Toggle visibility">👁️</button>
           </div>
-          
+
           <div class="button-group">
             <button id="saveButton" class="primary-button">Save API Key</button>
             <button id="clearSettingsButton" class="secondary-button">Clear API Key</button>
           </div>
-          
+
           <div id="statusMessage" class="status-message"></div>
         </div>
-        
+
         <div class="setting-group">
           <h2>About</h2>
           <p>Gemini Interceptor captures HTTP requests on webpages, filters and saves JSON responses, and allows you to query the data using Google Gemini AI.</p>
@@ -108,7 +112,8 @@
       </div>
     </div>
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
+
 </html>

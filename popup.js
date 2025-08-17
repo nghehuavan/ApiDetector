@@ -19,27 +19,27 @@ const siteToggleLabel = document.getElementById('siteToggleLabel');
 // Get the current page load ID from the active tab
 function getCurrentPageLoadId() {
   return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length === 0) {
         console.warn('getCurrentPageLoadId: No active tab found.');
         reject(new Error('No active tab found'));
         return;
       }
-      
+
       console.log('getCurrentPageLoadId: Sending GET_PAGE_LOAD_ID to tab:', tabs[0].id);
-      chrome.tabs.sendMessage(tabs[0].id, { type: 'GET_PAGE_LOAD_ID' }, response => {
+      chrome.tabs.sendMessage(tabs[0].id, { type: 'GET_PAGE_LOAD_ID' }, (response) => {
         if (chrome.runtime.lastError) {
           console.error('getCurrentPageLoadId: chrome.runtime.lastError:', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
           return;
         }
-        
+
         if (!response || !response.pageLoadId) {
           console.warn('getCurrentPageLoadId: Failed to get page load ID from response:', response);
           reject(new Error('Failed to get page load ID'));
           return;
         }
-        
+
         console.log('getCurrentPageLoadId: Received pageLoadId:', response.pageLoadId);
         resolve(response.pageLoadId);
       });
@@ -50,59 +50,53 @@ function getCurrentPageLoadId() {
 // Load logs for the current page load session
 function loadLogs() {
   logsCountElement.textContent = 'Loading...';
-  
-  chrome.runtime.sendMessage(
-    { type: 'GET_LOGS', pageLoadId: currentPageLoadId },
-    response => {
-      if (chrome.runtime.lastError) {
-        logsCountElement.textContent = `Error: ${chrome.runtime.lastError.message}`;
-        return;
-      }
-      
-      if (response.error) {
-        logsCountElement.textContent = `Error: ${response.error}`;
-        return;
-      }
-      
-      const logs = response.logs || [];
-      displayLogs(logs);
+
+  chrome.runtime.sendMessage({ type: 'GET_LOGS', pageLoadId: currentPageLoadId }, (response) => {
+    if (chrome.runtime.lastError) {
+      logsCountElement.textContent = `Error: ${chrome.runtime.lastError.message}`;
+      return;
     }
-  );
+
+    if (response.error) {
+      logsCountElement.textContent = `Error: ${response.error}`;
+      return;
+    }
+
+    const logs = response.logs || [];
+    displayLogs(logs);
+  });
 }
 
 // Display logs in the UI
 function displayLogs(logs) {
   logsListElement.innerHTML = '';
-  
+
   if (logs.length === 0) {
     logsListElement.innerHTML = '<div class="no-logs">No JSON responses captured yet</div>';
     logsCountElement.textContent = '0 JSON responses captured';
     return;
   }
-  
+
   // Sort logs by timestamp (newest first)
   logs.sort((a, b) => b.timestamp - a.timestamp);
-  
+
   // Apply search filter if needed
   const searchTerm = searchInput.value.toLowerCase();
   const filteredLogs = searchTerm
-    ? logs.filter(log => {
-        return (
-          log.url.toLowerCase().includes(searchTerm) ||
-          log.responseBody.toLowerCase().includes(searchTerm)
-        );
+    ? logs.filter((log) => {
+        return log.url.toLowerCase().includes(searchTerm) || log.responseBody.toLowerCase().includes(searchTerm);
       })
     : logs;
-  
+
   // Create log elements
-  filteredLogs.forEach(log => {
+  filteredLogs.forEach((log) => {
     const logElement = document.createElement('div');
     logElement.className = 'log-item';
-    
+
     // Format the timestamp
     const date = new Date(log.timestamp);
     const formattedTime = date.toLocaleTimeString();
-    
+
     // Try to parse the JSON for pretty display
     let formattedJson = log.responseBody;
     try {
@@ -112,7 +106,7 @@ function displayLogs(logs) {
       // If parsing fails, use the raw response
       console.warn('Failed to parse JSON:', e);
     }
-    
+
     // Create the log content
     logElement.innerHTML = `
       <div class="log-header">
@@ -127,18 +121,19 @@ function displayLogs(logs) {
         </button>
       </div>
     `;
-    
+
     // Add click handler to expand/collapse the log
     logElement.querySelector('.log-header').addEventListener('click', () => {
       logElement.classList.toggle('expanded');
     });
-    
+
     // Add click handler for the copy button
     const copyButton = logElement.querySelector('.copy-button');
     if (copyButton) {
       copyButton.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent triggering the expand/collapse
-        navigator.clipboard.writeText(formattedJson)
+        navigator.clipboard
+          .writeText(formattedJson)
           .then(() => {
             // Visual feedback for successful copy
             copyButton.classList.add('copied');
@@ -146,55 +141,55 @@ function displayLogs(logs) {
               copyButton.classList.remove('copied');
             }, 1500);
           })
-          .catch(err => {
+          .catch((err) => {
             console.error('Failed to copy text: ', err);
           });
       });
     }
-    
+
     logsListElement.appendChild(logElement);
   });
-  
+
   logsCountElement.textContent = `${filteredLogs.length} of ${logs.length} JSON responses captured`;
 }
 
 // Ask Gemini a question about the logs
 function askGemini() {
   const question = questionInput.value.trim();
-  
+
   if (!question) {
     showAnswer('Error: Please enter a question');
     return;
   }
-  
+
   // Disable the button and show loading state
   askButton.disabled = true;
   const originalButtonContent = askButton.innerHTML;
   askButton.innerHTML = '<div class="loading-spinner"></div>';
   answerContainer.classList.add('hidden');
-  
+
   // Send the question to the background script
   chrome.runtime.sendMessage(
     {
       type: 'ASK_GEMINI',
       pageLoadId: currentPageLoadId,
-      question: question
+      question: question,
     },
-    response => {
+    (response) => {
       // Re-enable the button
       askButton.disabled = false;
       askButton.innerHTML = originalButtonContent;
-      
+
       if (chrome.runtime.lastError) {
         showAnswer(`Error: ${chrome.runtime.lastError.message}`);
         return;
       }
-      
+
       if (response.error) {
         showAnswer(`Error: ${response.error}`);
         return;
       }
-      
+
       showAnswer(response.answer);
     }
   );
@@ -205,15 +200,19 @@ function showAnswer(answer) {
   // Check if it's an error message
   if (answer.startsWith('Error:')) {
     answerText.innerHTML = `<div class="error-message">${answer}</div>`;
-    
+
     // If it's an API key error, add a link to settings
     if (answer.includes('API key')) {
-      answerText.innerHTML += `<div class="help-text">Please check your <a href="settings.html" target="_blank">API key settings</a>.</div>`;
+      answerText.innerHTML += `<div class="help-text">Please check your <span id="settingsLink" class="link-style">API key settings</span>.</div>`;
+      // Add event listener to the dynamically created link
+      document.getElementById('settingsLink').addEventListener('click', () => {
+        settingsButton.click(); // Simulate a click on the settings button
+      });
     }
   } else {
     answerText.textContent = answer;
   }
-  
+
   answerContainer.classList.remove('hidden');
 }
 
@@ -222,37 +221,28 @@ async function initPopup() {
   try {
     // Get the current page load ID
     currentPageLoadId = await getCurrentPageLoadId();
-    
+
     // Load the logs
     loadLogs();
-    
+
     // Set up event listeners
     searchInput.addEventListener('input', () => {
       loadLogs(); // Reload logs with the new search term
     });
-    
+
     askButton.addEventListener('click', askGemini);
     refreshButton.addEventListener('click', loadLogs);
     clearAllButton.addEventListener('click', () => {
-       chrome.runtime.sendMessage({ type: 'CLEAR_ALL_LOGS' }, () => {
-          loadLogs();
-        });
+      chrome.runtime.sendMessage({ type: 'CLEAR_ALL_LOGS' }, () => {
+        loadLogs();
+      });
     });
 
     // Set up the site toggle
     setupSiteToggle();
 
-    // Load API key and check if it's set
-    loadApiKey(); // Load the key into the input field
-    chrome.storage.sync.get(['geminiApiKey'], result => {
-      if (!result.geminiApiKey) {
-        // If API key is not set, automatically open settings view
-        mainView.classList.add('hidden');
-        settingsView.classList.remove('hidden');
-        showStatus('Please enter your Gemini API key to use the extension.', 'info');
-      }
-    });
-
+    // Load API key (the settings view can be accessed manually if needed)
+    loadApiKey();
   } catch (error) {
     logsCountElement.textContent = `Error: ${error.message}`;
     console.error('Popup initialization error:', error);
@@ -260,53 +250,53 @@ async function initPopup() {
 }
 
 // Start the popup when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   initPopup();
   initSettings(); // This will now only set up event listeners, as loadApiKey is moved
 });
 
 // Handle the site-specific activation toggle
 function setupSiteToggle() {
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs.length === 0) {
       return;
     }
     const url = new URL(tabs[0].url);
     const hostname = url.hostname;
 
-    const updateToggleState = (isDeactivated) => {
-      siteToggle.checked = !isDeactivated;
-      siteToggleLabel.textContent = isDeactivated ? 'Deactivated' : 'Activated';
+    const updateToggleState = (isEnabled) => {
+      siteToggle.checked = isEnabled;
+      siteToggleLabel.textContent = isEnabled ? 'Enabled' : 'Disabled';
     };
 
     // Get initial state
-    chrome.storage.local.get('deactivatedSites', ({ deactivatedSites }) => {
-      const sites = deactivatedSites || [];
-      updateToggleState(sites.includes(hostname));
+    chrome.storage.local.get('enabledDomains', ({ enabledDomains }) => {
+      const domains = enabledDomains || [];
+      updateToggleState(domains.includes(hostname));
     });
 
     // Add change listener
     siteToggle.addEventListener('change', () => {
-      chrome.storage.local.get('deactivatedSites', ({ deactivatedSites }) => {
-        let sites = deactivatedSites || [];
-        const isActivating = siteToggle.checked;
+      chrome.storage.local.get('enabledDomains', ({ enabledDomains }) => {
+        let domains = enabledDomains || [];
+        const isEnabling = siteToggle.checked;
 
-        if (isActivating) {
-          sites = sites.filter(site => site !== hostname);
-        } else {
-          if (!sites.includes(hostname)) {
-            sites.push(hostname);
+        if (isEnabling) {
+          if (!domains.includes(hostname)) {
+            domains.push(hostname);
           }
+        } else {
+          domains = domains.filter((domain) => domain !== hostname);
         }
 
-        chrome.storage.local.set({ deactivatedSites: sites }, () => {
-          updateToggleState(!isActivating);
+        chrome.storage.local.set({ enabledDomains: domains }, () => {
+          updateToggleState(isEnabling);
           // Send message to content script
-          chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs.length > 0) {
               chrome.tabs.sendMessage(tabs[0].id, {
                 type: 'SET_ACTIVATION_STATE',
-                isActive: isActivating
+                isActive: isEnabling,
               });
             }
           });
@@ -328,7 +318,7 @@ const clearSettingsButton = document.getElementById('clearSettingsButton');
 const statusMessage = document.getElementById('statusMessage');
 
 // Add settings button functionality
-settingsButton.addEventListener('click', function() {
+settingsButton.addEventListener('click', function () {
   // Switch to settings view
   mainView.classList.add('hidden');
   settingsView.classList.remove('hidden');
@@ -336,7 +326,7 @@ settingsButton.addEventListener('click', function() {
 });
 
 // Add back button functionality
-backButton.addEventListener('click', function() {
+backButton.addEventListener('click', function () {
   // Switch back to main view
   settingsView.classList.add('hidden');
   mainView.classList.remove('hidden');
@@ -344,7 +334,7 @@ backButton.addEventListener('click', function() {
 
 // Load the saved API key
 function loadApiKey() {
-  chrome.storage.sync.get(['geminiApiKey'], result => {
+  chrome.storage.sync.get(['geminiApiKey'], (result) => {
     if (result.geminiApiKey) {
       apiKeyInput.value = result.geminiApiKey;
       // No status message here, as it might be called on initial load
@@ -357,12 +347,12 @@ function loadApiKey() {
 // Save the API key
 function saveApiKey() {
   const apiKey = apiKeyInput.value.trim();
-  
+
   if (!apiKey) {
     showStatus('Please enter an API key', 'error');
     return;
   }
-  
+
   chrome.storage.sync.set({ geminiApiKey: apiKey }, () => {
     showStatus('API key saved successfully!', 'success');
     // If successful, navigate back to main view
@@ -394,7 +384,7 @@ function toggleVisibility() {
 function showStatus(message, type) {
   statusMessage.textContent = message;
   statusMessage.className = `status-message ${type} visible`; // Add 'visible' class
-  
+
   // Clear the message after 3 seconds
   setTimeout(() => {
     statusMessage.textContent = '';
