@@ -407,12 +407,19 @@ function clearApiKey() {
 
 // Toggle API key visibility
 function toggleVisibility() {
+  const iconElement = toggleVisibilityButton.querySelector('i');
   if (apiKeyInput.type === 'password') {
     apiKeyInput.type = 'text';
-    toggleVisibilityButton.textContent = '🔒';
+    if (iconElement) {
+      iconElement.classList.remove('fa-eye');
+      iconElement.classList.add('fa-eye-slash');
+    }
   } else {
     apiKeyInput.type = 'password';
-    toggleVisibilityButton.textContent = '👁️';
+    if (iconElement) {
+      iconElement.classList.remove('fa-eye-slash');
+      iconElement.classList.add('fa-eye');
+    }
   }
 }
 
