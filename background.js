@@ -1,7 +1,7 @@
 // background.js - Service worker for database management and API calls
 
 // Database configuration
-const DB_NAME = 'GeminiInterceptorDB';
+const DB_NAME = 'ApiDetectorDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'requests';
 
@@ -112,7 +112,7 @@ async function clearAllRequests() {
 
 // Function to call the Google Gemini API
 async function callGeminiAPI(apiKey, logs, question) {
-  const API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+  const API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   // Format logs for the prompt
   const formattedLogs = logs.map((log) => ({

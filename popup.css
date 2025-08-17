@@ -14,7 +14,9 @@ body {
   background-color: #f8f9fa;
   width: 380px;
   max-height: 550px;
-  overflow: hidden;
+  /* Keep max-height for popup size */
+  overflow-y: auto;
+  /* Change to auto to allow scrolling */
 }
 
 .container {
@@ -29,7 +31,7 @@ header {
   padding: 12px 15px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -56,7 +58,7 @@ header h1 {
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-    width: 100%;
+  width: 100%;
 }
 
 #searchInput {
@@ -150,12 +152,12 @@ h2 {
   border-radius: 8px;
   overflow: hidden;
   background-color: white;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.2s;
 }
 
 .log-item:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .log-header {
@@ -210,10 +212,14 @@ h2 {
 
 .copy-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 26px;
-  height: 26px;
+  top: 5px;
+  /* Adjusted for smaller size */
+  right: 5px;
+  /* Adjusted for smaller size */
+  width: 20px;
+  /* Smaller size */
+  height: 20px;
+  /* Smaller size */
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.9);
   border: 1px solid #dadce0;
@@ -222,7 +228,7 @@ h2 {
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .copy-button:hover {
@@ -274,7 +280,8 @@ h2 {
 }
 
 .copy-button i {
-  font-size: 14px;
+  font-size: 10px;
+  /* Smaller icon size */
   color: #5f6368;
 }
 
@@ -328,7 +335,7 @@ h2 {
   position: sticky;
   bottom: 0;
   z-index: 10;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .gemini-container h2 {
@@ -396,7 +403,8 @@ h2 {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background-color: #5f6368; /* Dark gray background */
+  background-color: #5f6368;
+  /* Dark gray background */
   transition: background-color 0.2s;
   border: none;
   cursor: pointer;
@@ -410,13 +418,15 @@ h2 {
 }
 
 .settings-button:hover {
-  background-color: #3c4043; /* Darker gray on hover */
+  background-color: #3c4043;
+  /* Darker gray on hover */
 }
 
 .gear-icon {
   width: 16px;
   height: 16px;
-  filter: invert(100%); /* Invert colors to make it white */
+  filter: invert(100%);
+  /* Invert colors to make it white */
 }
 
 .loading-spinner {
@@ -429,7 +439,9 @@ h2 {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 #answerContainer {
@@ -519,11 +531,11 @@ h2 {
   transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #4285f4;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(14px);
 }
 
@@ -607,7 +619,7 @@ input:checked + .slider:before {
   margin-bottom: 15px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 #apiKeyInput {
