@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Api Detector",
+  "name": "API Detector",
   "version": "1.0",
   "description": "Captures HTTP requests, filters JSON responses, and allows ask with Google Gemini 2.5 Flash",
   "permissions": [

@@ -12,11 +12,9 @@ body {
   line-height: 1.4;
   color: #333;
   background-color: #f8f9fa;
-  width: 380px;
-  max-height: 550px;
-  /* Keep max-height for popup size */
+  width: 700px;
+  max-height: 800px;
   overflow-y: auto;
-  /* Change to auto to allow scrolling */
 }
 
 .container {
@@ -165,7 +163,6 @@ h2 {
   justify-content: space-between;
   padding: 8px 10px;
   background-color: #f8f9fa;
-  cursor: pointer;
   font-size: 11px;
   align-items: center;
 }
@@ -210,17 +207,21 @@ h2 {
   overflow-y: auto;
 }
 
+.log-actions {
+  display: flex;
+  gap: 4px;
+  /* Small gap between buttons */
+}
+
 .copy-button {
-  position: absolute;
-  top: 5px;
-  /* Adjusted for smaller size */
-  right: 5px;
-  /* Adjusted for smaller size */
+  position: relative;
+  /* Changed from absolute */
   width: 20px;
-  /* Smaller size */
+  /* Adjusted size */
   height: 20px;
-  /* Smaller size */
-  border-radius: 50%;
+  /* Adjusted size */
+  border-radius: 4px;
+  /* Not rounded */
   background-color: rgba(255, 255, 255, 0.9);
   border: 1px solid #dadce0;
   cursor: pointer;
@@ -281,7 +282,7 @@ h2 {
 
 .copy-button i {
   font-size: 10px;
-  /* Smaller icon size */
+  /* Adjusted icon size */
   color: #5f6368;
 }
 
@@ -291,6 +292,48 @@ h2 {
 
 .copy-button.copied i {
   color: white;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #80868b;
+  font-size: 10px;
+  /* Adjusted icon size */
+  padding: 4px;
+  border-radius: 4px;
+  /* Not rounded */
+  width: 20px;
+  /* Adjusted size */
+  height: 20px;
+  /* Adjusted size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #fce8e6;
+  color: #d93025;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  font-size: 11px;
+  align-items: center;
+}
+
+.log-info {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  overflow: hidden;
 }
 
 .action-button i.fa-trash-alt {
@@ -450,7 +493,8 @@ h2 {
   border-radius: 8px;
   padding: 10px;
   margin-top: 8px;
-  max-height: 150px;
+  max-height: 300px;
+  /* Increased for more Gemini answer content */
   overflow-y: auto;
 }
 
@@ -614,43 +658,49 @@ input:checked+.slider:before {
   text-decoration: underline;
 }
 
-.api-key-input {
+.api-key-controls {
   display: flex;
+  align-items: center;
   margin-bottom: 15px;
-  border-radius: 20px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-#apiKeyInput {
+.api-key-controls #apiKeyInput {
   flex-grow: 1;
-  padding: 10px 15px;
+  padding: 10px 12px;
   border: none;
-  background-color: #f8f9fa;
+  background-color: transparent;
   font-size: 13px;
   font-family: inherit;
+  color: #333;
 }
 
-#apiKeyInput:focus {
+.api-key-controls #apiKeyInput:focus {
   outline: none;
-  background-color: #fff;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  background-color: transparent;
 }
 
-#toggleVisibility {
-  padding: 0 15px;
-  background-color: #f1f3f4;
+.toggle-visibility-button {
+  background-color: transparent;
   border: none;
   cursor: pointer;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #5f6368;
-  font-size: 16px;
+  font-size: 14px;
+  height: 38px;
+  /* Match input height */
+  transition: color 0.2s;
 }
 
-#toggleVisibility:hover {
-  background-color: #e8eaed;
+.toggle-visibility-button:hover {
+  color: #4285f4;
 }
 
 .button-group {
@@ -661,7 +711,7 @@ input:checked+.slider:before {
 }
 
 button {
-  padding: 8px 16px;
+  padding: 4px 8px;
   border: none;
   border-radius: 20px;
   cursor: pointer;
@@ -669,7 +719,6 @@ button {
   font-size: 13px;
   font-family: inherit;
   transition: all 0.2s;
-  min-width: 100px;
   text-align: center;
 }
 
@@ -728,4 +777,11 @@ button {
   font-size: 12px;
   color: #5f6368;
   line-height: 1.6;
+}
+
+.author-text {
+  font-size: 10px;
+  color: #80868b;
+  text-align: right;
+  margin-top: 5px;
 }

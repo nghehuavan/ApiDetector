@@ -162,6 +162,32 @@ Based on the provided JSON responses, please answer the user's question. If the 
   }
 }
 
+// Delete a specific request by its ID
+async function deleteRequestById(id) {
+  try {
+    const db = await initDatabase();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+
+      const request = store.delete(id);
+
+      request.onsuccess = () => {
+        console.log('IndexedDB store.delete() successful for ID:', id);
+        resolve();
+      };
+      request.onerror = () => {
+        console.error('IndexedDB store.delete() failed for ID:', id, request.error);
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('Error deleting request:', error);
+    throw error;
+  }
+}
+
 // Listen for messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Background script received message:', message.type, message);
@@ -178,6 +204,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ error: error.message });
       });
     return true;
+  }
+
+  // Handle delete single log request
+  if (message.type === 'DELETE_LOG') {
+    console.log('Received DELETE_LOG message for ID:', message.logId);
+    deleteRequestById(parseInt(message.logId)) // Ensure ID is parsed as integer
+      .then(() => {
+        console.log('Log deleted successfully for ID:', message.logId);
+        sendResponse({ success: true });
+      })
+      .catch((error) => {
+        console.error('Error deleting log for ID:', message.logId, error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true; // Keep the message channel open for async response
   }
 
   // Handle new page loads

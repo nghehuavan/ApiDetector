@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Api Detector</title>
+  <title>API Detector</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="popup.css">
 </head>
@@ -18,7 +18,7 @@
           <button id="settingsButton" class="action-button settings-button" title="Settings">
             <i class="fas fa-cog"></i>
           </button>
-          <h1>Api Detector</h1>
+          <h1>API Detector</h1>
 
           <div class="toggle-container">
             <label class="switch">
@@ -39,7 +39,7 @@
 
       <div class="logs-container">
         <div class="logs-header">
-          <h2>Detected JSON responses</h2>
+          <h2>Detected Api</h2>
           <div class="button-group">
             <button id="refreshButton" title="Refresh Logs" class="action-button">
               <i class="fas fa-sync-alt"></i>
@@ -69,6 +69,9 @@
           <h3>Gemini's' Answer:</h3>
           <div id="answerText"></div>
         </div>
+        <div class="author-text">
+          <p>Powered by nghe.huavan@gmail.com</p>
+        </div>
       </div>
     </div>
 
@@ -90,9 +93,11 @@
             <a href="https://aistudio.google.com" target="_blank">Get an API key</a>
           </p>
 
-          <div class="api-key-input">
+          <div class="api-key-controls">
             <input type="password" id="apiKeyInput" placeholder="Enter your Gemini API key">
-            <button id="toggleVisibility" title="Toggle visibility">👁️</button>
+            <button id="toggleVisibility" title="Toggle visibility" class="toggle-visibility-button">
+              <i class="fas fa-eye"></i>
+            </button>
           </div>
 
           <div class="button-group">
@@ -105,7 +110,7 @@
 
         <div class="setting-group">
           <h2>About</h2>
-          <p>Gemini Interceptor captures HTTP requests on webpages, filters and saves JSON responses, and allows you to query the data using Google Gemini AI.</p>
+          <p>Captures HTTP responses on webpages, filters and saves JSON responses, and allows you to ask the data using Google Gemini AI.</p>
           <p>Version: 1.0</p>
           <p>Author: nghe.huavan@gmail.com</p>
         </div>

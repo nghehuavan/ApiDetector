@@ -93,10 +93,6 @@ function displayLogs(logs) {
     const logElement = document.createElement('div');
     logElement.className = 'log-item';
 
-    // Format the timestamp
-    const date = new Date(log.timestamp);
-    const formattedTime = date.toLocaleTimeString();
-
     // Try to parse the JSON for pretty display
     let formattedJson = log.responseBody;
     try {
@@ -110,20 +106,26 @@ function displayLogs(logs) {
     // Create the log content
     logElement.innerHTML = `
       <div class="log-header">
-        <div class="log-url">${log.url}</div>
-        <div class="log-method">${log.method}</div>
-        <div class="log-time">${formattedTime}</div>
+        <div class="log-info">
+          <div class="log-url">${log.url}</div>
+          <div class="log-method">${log.method}</div>
+        </div>
+        <div class="log-actions">
+          <button class="copy-button" title="Copy to clipboard">
+            <i class="fas fa-copy"></i>
+          </button>
+          <button class="delete-button" title="Delete Log" data-log-id="${log.id}">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
       <div class="log-body-container">
         <pre class="log-body">${formattedJson}</pre>
-        <button class="copy-button" title="Copy to clipboard">
-          <i class="fas fa-copy"></i>
-        </button>
       </div>
     `;
 
     // Add click handler to expand/collapse the log
-    logElement.querySelector('.log-header').addEventListener('click', () => {
+    logElement.querySelector('.log-info').addEventListener('click', () => {
       logElement.classList.toggle('expanded');
     });
 
@@ -132,8 +134,9 @@ function displayLogs(logs) {
     if (copyButton) {
       copyButton.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent triggering the expand/collapse
+        const contentToCopy = `URL: ${log.url}\n\nResponse Body:\n${formattedJson}`;
         navigator.clipboard
-          .writeText(formattedJson)
+          .writeText(contentToCopy)
           .then(() => {
             // Visual feedback for successful copy
             copyButton.classList.add('copied');
@@ -144,6 +147,28 @@ function displayLogs(logs) {
           .catch((err) => {
             console.error('Failed to copy text: ', err);
           });
+      });
+    }
+
+    // Add click handler for the delete button
+    const deleteButton = logElement.querySelector('.delete-button');
+    if (deleteButton) {
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent triggering the expand/collapse
+        const logIdToDelete = e.currentTarget.dataset.logId;
+        if (logIdToDelete) {
+          chrome.runtime.sendMessage({ type: 'DELETE_LOG', logId: logIdToDelete, pageLoadId: currentPageLoadId }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error('DELETE_LOG error:', chrome.runtime.lastError);
+              return;
+            }
+            if (response && response.success) {
+              loadLogs(); // Reload logs after successful deletion
+            } else {
+              console.error('Failed to delete log:', response.error);
+            }
+          });
+        }
       });
     }
 
