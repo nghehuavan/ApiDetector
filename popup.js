@@ -82,11 +82,22 @@ function displayLogs(logs) {
 
   // Apply search filter if needed
   const searchTerm = searchInput.value.toLowerCase();
-  const filteredLogs = searchTerm
-    ? logs.filter((log) => {
+  let filteredLogs = logs;
+
+  if (searchTerm) {
+    if (searchTerm.startsWith('!')) {
+      const excludeKeyword = searchTerm.substring(1).trim();
+      if (excludeKeyword) {
+        filteredLogs = logs.filter((log) => {
+          return !(log.url.toLowerCase().includes(excludeKeyword) || log.responseBody.toLowerCase().includes(excludeKeyword));
+        });
+      }
+    } else {
+      filteredLogs = logs.filter((log) => {
         return log.url.toLowerCase().includes(searchTerm) || log.responseBody.toLowerCase().includes(searchTerm);
-      })
-    : logs;
+      });
+    }
+  }
 
   // Create log elements
   filteredLogs.forEach((log) => {
@@ -428,16 +439,19 @@ function saveApiKey() {
     return;
   }
 
-  chrome.storage.sync.set({
-    apiProvider: apiProvider,
-    geminiApiKey: geminiApiKey,
-    openrouterApiKey: openrouterApiKey
-  }, () => {
-    showStatus('Settings saved successfully!', 'success');
-    // If successful, navigate back to main view
-    settingsView.classList.add('hidden');
-    mainView.classList.remove('hidden');
-  });
+  chrome.storage.sync.set(
+    {
+      apiProvider: apiProvider,
+      geminiApiKey: geminiApiKey,
+      openrouterApiKey: openrouterApiKey,
+    },
+    () => {
+      showStatus('Settings saved successfully!', 'success');
+      // If successful, navigate back to main view
+      settingsView.classList.add('hidden');
+      mainView.classList.remove('hidden');
+    }
+  );
 }
 
 // Clear the API key and provider
